@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  event-awareness:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: event-situational-awareness
+    ports:
+      - "8501:8501"
+    environment:
+      # Google Gemini API key - set this in your .env file
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    volumes:
+      # Mount data directory for persistent storage
+      - ./data:/app/data:rw
+      # Mount videos directory for video processing
+      - ./videos:/app/videos:rw
+      # Optional: Mount .env file if you prefer file-based config
+      - ./.env:/app/.env:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - event-awareness-network
+    depends_on:
+      - redis
+    labels:
+      - "com.eventawareness.service=main"
+      - "com.eventawareness.version=1.0"
+
+  # Optional: Redis for caching (can improve performance for repeated queries)
+  redis:
+    image: redis:7-alpine
+    container_name: event-awareness-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    command: redis-server --appendonly yes --appendfsync everysec
+    networks:
+      - event-awareness-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    labels:
+      - "com.eventawareness.service=cache"
+
+networks:
+  event-awareness-network:
+    driver: bridge
+    name: event-awareness-net
+
+volumes:
+  redis-data:
+    name: event-awareness-redis-data
+
+# Optional: Development override
+# Create docker-compose.override.yml for development-specific settings
