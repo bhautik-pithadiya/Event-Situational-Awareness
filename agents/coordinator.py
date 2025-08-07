@@ -146,12 +146,16 @@ class CoordinatorAgent:
                 # Create sample analysis data for testing when no videos are available
                 return self._create_sample_vision_data()
             
+            # Get zone names based on video count
+            zone_names = config.get_zones_for_videos(len(video_files))
+            print(f"Found {len(video_files)} videos, assigning {len(zone_names)} zones: {zone_names}")
+            
             # Process each video file
-            for video_path in video_files:
+            for i, video_path in enumerate(video_files):
                 print(f"Processing video: {video_path}")
                 
-                # Determine zone name from filename
-                zone_name = self._extract_zone_name(video_path)
+                # Assign zone based on video index
+                zone_name = zone_names[i] if i < len(zone_names) else zone_names[0]
                 
                 # Process video frames
                 frame_data = self.video_processor.process_video_file(video_path, zone_name)
@@ -227,9 +231,10 @@ class CoordinatorAgent:
         """
         sample_analyses = []
         
-        zones = ['Zone A', 'Zone B', 'Zone C', 'Zone D']
-        densities = ['moderate', 'high', 'low', 'high']
-        behaviors = ['excited', 'calm', 'calm', 'calm']
+        # Use dynamic zone count - default to 2 zones if no videos
+        zones = config.get_zones_for_videos(2)  # Default to 2 zones for sample data
+        densities = ['moderate', 'high', 'low', 'high', 'moderate', 'low'][:len(zones)]
+        behaviors = ['excited', 'calm', 'calm', 'calm', 'excited', 'calm'][:len(zones)]
         
         for i, (zone, density, behavior) in enumerate(zip(zones, densities, behaviors)):
             sample_analysis = {

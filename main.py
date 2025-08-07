@@ -76,7 +76,7 @@ def get_threat_level_color(threat_level: str) -> str:
     """Get CSS class for threat level"""
     colors = {
         'green': 'status-green',
-        'yellow': 'status-yellow', 
+        'darkyellow': 'status-yellow',
         'orange': 'status-orange',
         'red': 'status-red'
     }
@@ -148,7 +148,7 @@ def render_summary_panel():
     
     with col1:
         threat_level = summary.get('threat_level', 'yellow')
-        threat_color = get_threat_level_color(threat_level)
+        threat_color = "white"
         st.markdown(f"""
         <div class="threat-level {threat_color}">
             🚨 Threat Level: {threat_level.upper()}
